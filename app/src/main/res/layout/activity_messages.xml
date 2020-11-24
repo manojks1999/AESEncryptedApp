@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Messages">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/myRecycler"
+        android:layout_alignParentTop="true"
+        >
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+    <EditText
+        android:id="@+id/msg"
+        android:layout_width="match_parent"
+        android:ems="10"
+        android:layout_above="@+id/myRecycler"
+        android:hint="@string/Type_Here"
+        android:inputType="textMultiLine"
+        android:textSize="14sp"
+        android:layout_marginRight="60dp"
+        android:layout_alignParentBottom="true"
+        android:drawablePadding="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:background="@drawable/custom_input"
+        android:layout_height="49dp"/>
+    <Button
+        android:layout_width="50dp"
+        android:id="@+id/btnSend"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_above="@+id/myRecycler"
+        android:background="@drawable/ic_send_black_24dp"
+        android:layout_height="50dp"/>
+
+</RelativeLayout>

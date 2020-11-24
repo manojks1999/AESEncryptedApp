@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Encr</string>
+    <string name="Name">Name</string>
+    <string name="RoomID">Room ID</string>
+    <string name="Key">Key</string>
+    <string name="Type_Here">Type Here</string>
+</resources>
