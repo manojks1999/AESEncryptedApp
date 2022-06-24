@@ -1,0 +1,493 @@
+Index: build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// Top-level build file where you can add configuration options common to all sub-projects/modules.\r\n\r\nbuildscript {\r\n    repositories {\r\n        google()\r\n        jcenter()\r\n        \r\n    }\r\n    dependencies {\r\n        classpath 'com.android.tools.build:gradle:3.5.0'\r\n        classpath 'com.google.gms:google-services:4.3.3'\r\n        \r\n        // NOTE: Do not place your application dependencies here; they belong\r\n        // in the individual module build.gradle files\r\n    }\r\n}\r\n\r\nallprojects {\r\n    repositories {\r\n        google()\r\n        jcenter()\r\n        \r\n    }\r\n}\r\n\r\ntask clean(type: Delete) {\r\n    delete rootProject.buildDir\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- build.gradle	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ build.gradle	(date 1655480914498)
+@@ -7,7 +7,7 @@
+         
+     }
+     dependencies {
+-        classpath 'com.android.tools.build:gradle:3.5.0'
++        classpath 'com.android.tools.build:gradle:4.2.2'
+         classpath 'com.google.gms:google-services:4.3.3'
+         
+         // NOTE: Do not place your application dependencies here; they belong
+Index: app/src/main/java/com/example/encr/Messages.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.encr;\r\n\r\nimport androidx.annotation.NonNull;\r\nimport androidx.recyclerview.widget.LinearLayoutManager;\r\nimport androidx.recyclerview.widget.RecyclerView;\r\n\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.view.LayoutInflater;\r\nimport android.view.View;\r\nimport android.view.ViewGroup;\r\nimport android.widget.Button;\r\nimport android.widget.EditText;\r\n\r\nimport com.firebase.ui.database.FirebaseRecyclerOptions;\r\nimport com.google.firebase.database.DataSnapshot;\r\nimport com.google.firebase.database.DatabaseError;\r\nimport com.google.firebase.database.DatabaseReference;\r\nimport com.google.firebase.database.FirebaseDatabase;\r\nimport com.google.firebase.database.ValueEventListener;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\nimport com.firebase.ui.database.FirebaseRecyclerAdapter;\r\nimport androidx.appcompat.app.AppCompatActivity;\r\nimport java.security.Key;\r\nimport java.util.logging.Level;\r\nimport java.util.logging.Logger;\r\nimport javax.crypto.Cipher;\r\nimport javax.crypto.spec.SecretKeySpec;\r\nimport java.util.Base64.Encoder;\r\nimport java.util.Base64.Decoder;\r\nimport java.io.UnsupportedEncodingException;\r\nimport java.security.MessageDigest;\r\nimport java.security.NoSuchAlgorithmException;\r\nimport java.util.Arrays;\r\nimport java.util.Base64;\r\n\r\nimport javax.crypto.Cipher;\r\nimport javax.crypto.spec.SecretKeySpec;\r\n\r\n\r\nimport android.os.Build;\r\nimport android.os.Bundle;\r\nimport android.util.Log;\r\nimport android.widget.ListView;\r\n\r\npublic class Messages extends MainActivity {\r\n\r\n\r\n    public static SecretKeySpec secretKey;\r\n    public static byte[] key;\r\n\r\n    DatabaseReference ref;\r\n    private FirebaseRecyclerOptions<List_Data> options;\r\n    private FirebaseRecyclerAdapter<List_Data, MyViewHolder>adapter;\r\n    RecyclerView recyclerView;\r\n\r\n    EditText msg;\r\n    String mname,mroom_id,mroom_key;\r\n    Button send;\r\n\r\n    public static void setKey(String myKey)\r\n    {\r\n        MessageDigest sha = null;\r\n        try {\r\n            key = myKey.getBytes(\"UTF-8\");\r\n            sha = MessageDigest.getInstance(\"SHA-1\");\r\n            key = sha.digest(key);\r\n            key = Arrays.copyOf(key, 16);\r\n            secretKey = new SecretKeySpec(key, \"AES\");\r\n        }\r\n        catch (NoSuchAlgorithmException e) {\r\n            e.printStackTrace();\r\n        }\r\n        catch (UnsupportedEncodingException e) {\r\n            e.printStackTrace();\r\n        }\r\n    }\r\n\r\n    public static String encrypt(String strToEncrypt, String secret)\r\n    {\r\n        try\r\n        {\r\n            setKey(secret);\r\n            Cipher cipher = Cipher.getInstance(\"AES/ECB/PKCS5Padding\");\r\n            cipher.init(Cipher.ENCRYPT_MODE, secretKey);\r\n            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {\r\n                return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes(\"UTF-8\")));\r\n            }\r\n        }\r\n        catch (Exception e)\r\n        {\r\n            System.out.println(\"Error while encrypting: \" + e.toString());\r\n        }\r\n        return null;\r\n    }\r\n    public static String decrypt(String strToDecrypt, String secret)\r\n    {\r\n        try\r\n        {\r\n            setKey(secret);\r\n            Cipher cipher = Cipher.getInstance(\"AES/ECB/PKCS5PADDING\");\r\n            cipher.init(Cipher.DECRYPT_MODE, secretKey);\r\n            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {\r\n                return new String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt)));\r\n            }\r\n        }\r\n        catch (Exception e)\r\n        {\r\n            System.out.println(\"Error while decrypting: \" + e.toString());\r\n        }\r\n        return null;\r\n    }\r\n\r\n\r\n\r\n\r\n   @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_messages);\r\n\r\n        recyclerView=findViewById(R.id.myRecycler);\r\n        recyclerView.setHasFixedSize(true);\r\n        recyclerView.setLayoutManager(new LinearLayoutManager(this));\r\n\r\n\r\n        Intent intent = getIntent();\r\n\r\n        mname = intent.getStringExtra(\"name\");\r\n        mroom_id = intent.getStringExtra(\"room_id\");\r\n        mroom_key = intent.getStringExtra(\"room_key\");\r\n\r\n        final String secretKey = mroom_key;\r\n\r\n\r\n      /*  recyclerView=(RecyclerView)findViewById(R.id.myRecycler);\r\n        recyclerView.setLayoutManager(new LinearLayoutManager(this));\r\n        list=new ArrayList<model>();*/\r\n\r\n       ref=FirebaseDatabase.getInstance().getReference(\"SecuredChatDemo\").child(mroom_id);/*\r\n        nm.addValueEventListener(new ValueEventListener() {\r\n            @Override\r\n            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {\r\n                if (dataSnapshot.exists()){\r\n                    for (DataSnapshot npsnapshot : dataSnapshot.getChildren()){\r\n                        List_Data l=npsnapshot.getValue(List_Data.class);\r\n                        listData.add(l);\r\n                    }\r\n                    adapter=new MyAdapter(listData);\r\n                    rv.setAdapter(adapter);\r\n\r\n                }\r\n\r\n            }\r\n\r\n            @Override\r\n            public void onCancelled(@NonNull DatabaseError databaseError) {\r\n\r\n            }\r\n        });*/\r\n       /* reference.addValueEventListener(new ValueEventListener() {\r\n            @Override\r\n            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {\r\n                for(DataSnapshot dataSnapshot1:dataSnapshot.getChildren())\r\n                {\r\n                    model p=dataSnapshot1.getValue(model.class);\r\n                    list.add(p);\r\n                }\r\n                adapter=new MyAdapter(Messages.this,list);\r\n                recyclerView.setAdapter(adapter);\r\n\r\n            }\r\n\r\n            @Override\r\n            public void onCancelled(@NonNull DatabaseError error) {\r\n\r\n                Toast.makeText(Messages.this,\"Oops Somrthing went wrong\",Toast.LENGTH_LONG);\r\n            }\r\n        });*/\r\n\r\n        msg=(EditText)findViewById(R.id.msg);\r\n        send=(Button)findViewById(R.id.btnSend);\r\n\r\n        send.setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n\r\n                String key=ref.push().getKey();\r\n               /* String encname=encrypt(mname.toString(),secretKey);\r\n                String name=encname;*/\r\n               String name=mname.toString();\r\n                String encmsg=encrypt(msg.getText().toString(),secretKey);\r\n                String message=encmsg;\r\n\r\n                ref.child(key).child(\"Name\").setValue(name);\r\n                ref.child(key).child(\"Message\").setValue(message);\r\n            }\r\n        });\r\n\r\n        options=new FirebaseRecyclerOptions.Builder<List_Data>().setQuery(ref, List_Data.class).build();\r\n        adapter=new FirebaseRecyclerAdapter<List_Data, MyViewHolder>(options) {\r\n            @Override\r\n            protected void onBindViewHolder(@NonNull MyViewHolder holder, int i, @NonNull List_Data list_data) {\r\n                String decmsg=decrypt(list_data.getMessage(),secretKey);\r\n                holder.textName.setText(\"\"+list_data.getName());\r\n                holder.textMsg.setText(decmsg);\r\n\r\n            }\r\n\r\n            @NonNull\r\n            @Override\r\n            public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {\r\n                View v=LayoutInflater.from(parent.getContext()).inflate(R.layout.single_view_layout,parent,false);\r\n                return new MyViewHolder(v);\r\n            }\r\n        };\r\n\r\n        adapter.startListening();\r\n        recyclerView.setAdapter(adapter);\r\n\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/encr/Messages.java	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ app/src/main/java/com/example/encr/Messages.java	(date 1655481848566)
+@@ -132,7 +132,7 @@
+         mroom_id = intent.getStringExtra("room_id");
+         mroom_key = intent.getStringExtra("room_key");
+ 
+-        final String secretKey = mroom_key;
++        final String secretKey = mroom_key+mroom_id;
+ 
+ 
+       /*  recyclerView=(RecyclerView)findViewById(R.id.myRecycler);
+@@ -196,6 +196,7 @@
+ 
+                 ref.child(key).child("Name").setValue(name);
+                 ref.child(key).child("Message").setValue(message);
++                msg.setText("");
+             }
+         });
+ 
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_1_7\" project-jdk-name=\"1.8\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/misc.xml	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ .idea/misc.xml	(date 1655481062477)
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_7" project-jdk-name="1.8" project-jdk-type="JavaSDK">
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+     <output url="file://$PROJECT_DIR$/build/classes" />
+   </component>
+   <component name="ProjectType">
+Index: .idea/gradle.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"GradleSettings\">\r\n    <option name=\"linkedExternalProjectsSettings\">\r\n      <GradleProjectSettings>\r\n        <compositeConfiguration>\r\n          <compositeBuild compositeDefinitionSource=\"SCRIPT\" />\r\n        </compositeConfiguration>\r\n        <option name=\"distributionType\" value=\"DEFAULT_WRAPPED\" />\r\n        <option name=\"externalProjectPath\" value=\"$PROJECT_DIR$\" />\r\n        <option name=\"resolveModulePerSourceSet\" value=\"false\" />\r\n        <option name=\"testRunner\" value=\"PLATFORM\" />\r\n      </GradleProjectSettings>\r\n    </option>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/gradle.xml	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ .idea/gradle.xml	(date 1655481065669)
+@@ -1,15 +1,20 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
++  <component name="GradleMigrationSettings" migrationVersion="1" />
+   <component name="GradleSettings">
+     <option name="linkedExternalProjectsSettings">
+       <GradleProjectSettings>
+-        <compositeConfiguration>
+-          <compositeBuild compositeDefinitionSource="SCRIPT" />
+-        </compositeConfiguration>
++        <option name="delegatedBuild" value="false" />
++        <option name="testRunner" value="PLATFORM" />
+         <option name="distributionType" value="DEFAULT_WRAPPED" />
+         <option name="externalProjectPath" value="$PROJECT_DIR$" />
++        <option name="modules">
++          <set>
++            <option value="$PROJECT_DIR$" />
++            <option value="$PROJECT_DIR$/app" />
++          </set>
++        </option>
+         <option name="resolveModulePerSourceSet" value="false" />
+-        <option name="testRunner" value="PLATFORM" />
+       </GradleProjectSettings>
+     </option>
+   </component>
+Index: app/src/main/res/drawable/ic_launcher_background.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    android:width=\"108dp\"\r\n    android:height=\"108dp\"\r\n    android:viewportWidth=\"108\"\r\n    android:viewportHeight=\"108\">\r\n    <path\r\n        android:fillColor=\"#008577\"\r\n        android:pathData=\"M0,0h108v108h-108z\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M9,0L9,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M19,0L19,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M29,0L29,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M39,0L39,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M49,0L49,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M59,0L59,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M69,0L69,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M79,0L79,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M89,0L89,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M99,0L99,108\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,9L108,9\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,19L108,19\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,29L108,29\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,39L108,39\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,49L108,49\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,59L108,59\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,69L108,69\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,79L108,79\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,89L108,89\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M0,99L108,99\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M19,29L89,29\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M19,39L89,39\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M19,49L89,49\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M19,59L89,59\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M19,69L89,69\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M19,79L89,79\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M29,19L29,89\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M39,19L39,89\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M49,19L49,89\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M59,19L59,89\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M69,19L69,89\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n    <path\r\n        android:fillColor=\"#00000000\"\r\n        android:pathData=\"M79,19L79,89\"\r\n        android:strokeWidth=\"0.8\"\r\n        android:strokeColor=\"#33FFFFFF\" />\r\n</vector>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/ic_launcher_background.xml	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ app/src/main/res/drawable/ic_launcher_background.xml	(date 1606238741946)
+@@ -1,170 +1,74 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<vector xmlns:android="http://schemas.android.com/apk/res/android"
+-    android:width="108dp"
++<vector
+     android:height="108dp"
++    android:width="108dp"
++    android:viewportHeight="108"
+     android:viewportWidth="108"
+-    android:viewportHeight="108">
+-    <path
+-        android:fillColor="#008577"
+-        android:pathData="M0,0h108v108h-108z" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M9,0L9,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M19,0L19,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M29,0L29,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M39,0L39,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M49,0L49,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M59,0L59,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M69,0L69,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M79,0L79,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M89,0L89,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M99,0L99,108"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,9L108,9"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,19L108,19"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,29L108,29"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,39L108,39"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,49L108,49"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,59L108,59"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,69L108,69"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,79L108,79"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,89L108,89"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M0,99L108,99"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M19,29L89,29"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M19,39L89,39"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M19,49L89,49"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M19,59L89,59"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M19,69L89,69"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M19,79L89,79"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M29,19L29,89"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M39,19L39,89"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M49,19L49,89"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M59,19L59,89"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M69,19L69,89"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
+-    <path
+-        android:fillColor="#00000000"
+-        android:pathData="M79,19L79,89"
+-        android:strokeWidth="0.8"
+-        android:strokeColor="#33FFFFFF" />
++    xmlns:android="http://schemas.android.com/apk/res/android">
++    <path android:fillColor="#008577"
++          android:pathData="M0,0h108v108h-108z"/>
++    <path android:fillColor="#00000000" android:pathData="M9,0L9,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M19,0L19,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M29,0L29,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M39,0L39,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M49,0L49,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M59,0L59,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M69,0L69,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M79,0L79,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M89,0L89,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M99,0L99,108"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,9L108,9"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,19L108,19"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,29L108,29"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,39L108,39"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,49L108,49"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,59L108,59"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,69L108,69"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,79L108,79"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,89L108,89"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M0,99L108,99"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M19,29L89,29"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M19,39L89,39"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M19,49L89,49"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M19,59L89,59"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M19,69L89,69"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M19,79L89,79"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M29,19L29,89"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M39,19L39,89"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M49,19L49,89"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M59,19L59,89"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M69,19L69,89"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
++    <path android:fillColor="#00000000" android:pathData="M79,19L79,89"
++          android:strokeColor="#33FFFFFF" android:strokeWidth="0.8"/>
+ </vector>
+Index: .idea/runConfigurations.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"RunConfigurationProducerService\">\r\n    <option name=\"ignoredProducers\">\r\n      <set>\r\n        <option value=\"org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer\" />\r\n        <option value=\"org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer\" />\r\n        <option value=\"org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer\" />\r\n      </set>\r\n    </option>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/runConfigurations.xml	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ .idea/runConfigurations.xml	(date 1649523943373)
+@@ -3,6 +3,7 @@
+   <component name="RunConfigurationProducerService">
+     <option name="ignoredProducers">
+       <set>
++        <option value="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer" />
+         <option value="org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer" />
+         <option value="org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer" />
+         <option value="org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer" />
+Index: app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">\r\n    <background android:drawable=\"@drawable/ic_launcher_background\" />\r\n    <foreground android:drawable=\"@drawable/ic_launcher_foreground\" />\r\n</adaptive-icon>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml	(date 1606238742644)
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+-    <background android:drawable="@drawable/ic_launcher_background" />
+-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
++    <background android:drawable="@drawable/ic_launcher_background"/>
++    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+ </adaptive-icon>
+\ No newline at end of file
+Index: app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">\r\n    <background android:drawable=\"@drawable/ic_launcher_background\" />\r\n    <foreground android:drawable=\"@drawable/ic_launcher_foreground\" />\r\n</adaptive-icon>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml	(date 1606238742641)
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+-    <background android:drawable="@drawable/ic_launcher_background" />
+-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
++    <background android:drawable="@drawable/ic_launcher_background"/>
++    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+ </adaptive-icon>
+\ No newline at end of file
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/vcs.xml	(date 1606237973775)
++++ .idea/vcs.xml	(date 1606237973775)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="$PROJECT_DIR$" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/compiler.xml	(date 1655481064797)
++++ .idea/compiler.xml	(date 1655481064797)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="CompilerConfiguration">
++    <bytecodeTargetLevel target="11" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/jarRepositories.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/jarRepositories.xml	(date 1655481066485)
++++ .idea/jarRepositories.xml	(date 1655481066485)
+@@ -0,0 +1,25 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="RemoteRepositoriesConfiguration">
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Maven Central repository" />
++      <option name="url" value="https://repo1.maven.org/maven2" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="jboss.community" />
++      <option name="name" value="JBoss Community repository" />
++      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="BintrayJCenter" />
++      <option name="name" value="BintrayJCenter" />
++      <option name="url" value="https://jcenter.bintray.com/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="Google" />
++      <option name="name" value="Google" />
++      <option name="url" value="https://dl.google.com/dl/android/maven2/" />
++    </remote-repository>
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/main/res/values/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><resources>\r\n    <string name=\"app_name\">Encr</string>\r\n    <string name=\"Name\">Name</string>\r\n    <string name=\"RoomID\">Room ID</string>\r\n    <string name=\"Key\">Key</string>\r\n    <string name=\"Type_Here\">Type Here</string>\r\n</resources>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/strings.xml	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ app/src/main/res/values/strings.xml	(date 1606239266760)
+@@ -1,5 +1,5 @@
+ <resources>
+-    <string name="app_name">Encr</string>
++    <string name="app_name">Secured Messange App</string>
+     <string name="Name">Name</string>
+     <string name="RoomID">Room ID</string>
+     <string name="Key">Key</string>
+Index: gradle/wrapper/gradle-wrapper.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>#Sat Sep 12 22:21:25 IST 2020\r\ndistributionBase=GRADLE_USER_HOME\r\ndistributionPath=wrapper/dists\r\nzipStoreBase=GRADLE_USER_HOME\r\nzipStorePath=wrapper/dists\r\ndistributionUrl=https\\://services.gradle.org/distributions/gradle-5.4.1-all.zip\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>windows-1252
+===================================================================
+--- gradle/wrapper/gradle-wrapper.properties	(revision 39c44e06c2b3cc7b649f6c0e0fd384fceb6796be)
++++ gradle/wrapper/gradle-wrapper.properties	(date 1655480912764)
+@@ -3,4 +3,4 @@
+ distributionPath=wrapper/dists
+ zipStoreBase=GRADLE_USER_HOME
+ zipStorePath=wrapper/dists
+-distributionUrl=https\://services.gradle.org/distributions/gradle-5.4.1-all.zip
++distributionUrl=https\://services.gradle.org/distributions/gradle-6.7.1-all.zip

@@ -132,7 +132,7 @@ public class Messages extends MainActivity {
         mroom_id = intent.getStringExtra("room_id");
         mroom_key = intent.getStringExtra("room_key");
 
-        final String secretKey = mroom_key;
+        final String secretKey = mroom_key+mroom_id;
 
 
       /*  recyclerView=(RecyclerView)findViewById(R.id.myRecycler);
@@ -196,6 +196,7 @@ public class Messages extends MainActivity {
 
                 ref.child(key).child("Name").setValue(name);
                 ref.child(key).child("Message").setValue(message);
+                msg.setText("");
             }
         });
 
